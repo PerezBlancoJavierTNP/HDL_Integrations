@@ -1,0 +1,107 @@
+name: TNP Fast BC Preview build check
+run-name: 'TNP Fast ${{ inputs.previewtype }} BC Preview Buld Check'
+on: 
+  workflow_dispatch:
+    inputs:
+      previewtype:
+        description: 'Preview type'
+        type: choice
+        options:
+          - Insider
+          - Next Major
+          - Next Minor
+        required: true
+
+jobs:
+  build-config:
+    name: Prepare build configurations
+    runs-on: self-hosted
+    outputs:
+      buildconfigurations: ${{ env.tnpALBuildConfigurations }}
+      testbuildconfigurations: ${{ env.tnpALTestBuildConfigurations }}
+      previewtestbuildconfigurations: ${{ env.tnpALPreviewTestBuildConfigurations }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.TNPREPOSITORYINITKEY }}
+
+      - name: read settings
+        id: read-settings
+        uses: TheNAVPeople/devops_al_Actions/read-settings@v2.0
+        with:
+          path: "${{ github.workspace }}"
+
+  build:
+    name: Build apps
+    needs: build-config
+    strategy:
+      matrix:
+        include: ${{ fromJSON(needs.build-config.outputs.previewtestbuildconfigurations) }}
+    runs-on: self-hosted
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: read settings
+        uses: TheNAVPeople/devops_al_Actions/read-settings@v2.0
+        with:
+          path: "${{ github.workspace }}"
+
+      - name: Detect bc preview type
+        run: |
+          [string] $previewType = "${{ inputs.previewtype }}"
+          $artifactsType = "Sandbox"
+          if ($previewType -eq "Insider") {
+            $storageAccount = "bcinsider"
+            $selectVersion = "Latest"          
+          } else {
+            if ($previewType -eq "Next Minor") {
+              $selectVersion = "NextMinor"
+            } else {
+              $selectVersion = "NextMajor"
+            }           
+            $storageAccount = ""
+          }
+
+          Write-Output "tnpBCArtifactsType=$artifactsType" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Output "tnpBCStorageAccount=$storageAccount" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Output "tnpBCSelectVersion=$selectVersion" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: setup
+        uses: TheNAVPeople/devops_al_Actions/setup-al@v2.0
+        with:
+          psgalleryapikey: ${{ secrets.TNPPSREPOSITORYAPIKEY }}
+          projectpath: "${{ github.workspace }}"
+          compilerselect: "${{ env.tnpBCSelectVersion }}"
+          artifactstype: "${{ env.tnpBCArtifactsType }}"
+          storageaccount: "${{ env.tnpBCStorageAccount }}"
+
+      # Build extension using lowest version of dependencies
+      - name: Build for lowest dependencies versions
+        uses: TheNAVPeople/devops_al_Actions/build@v2.0
+        with:
+          path: "${{ github.workspace }}"
+          compilerpath: "${{ env.al_compiler_path }}"
+          configuration: "${{ matrix.configuration }}"
+          analyzers: "${{ matrix.analyzers }}"
+          warnaserror: "${{ env.tnpPreviewWarnAsError }}"
+          outpath: "${{ github.workspace }}\\.out"
+          compilerlog: "${{ github.workspace }}\\compilerlog-${{ matrix.title }}.log"
+          apikey: ${{ secrets.NUGETAPIKEY }}
+          commitversionchange: false
+          changeversion: false
+          bcartifactstype: "${{ env.tnpBCArtifactsType }}"
+          bcartifactsstorageaccount: "${{ env.tnpBCStorageAccount }}"
+          bcversionselectionMode: "${{ env.tnpBCSelectVersion }}"
+          bccountry: "${{ matrix.country }}"
+          ruleset: "${{ env.tnpRuleset }}"
+          parallel: "${{ env.tnpParallelCompilation }}"
+
+      - name: Archive compiler output
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Compiler output log - ${{ matrix.title }}
+          path: "${{ github.workspace }}\\compilerlog-${{ matrix.title }}.log"

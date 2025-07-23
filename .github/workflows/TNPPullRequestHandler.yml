@@ -1,0 +1,110 @@
+name: TNP PullRequest Handler
+on:
+  pull_request:
+    branches: [ develop, main, master, release/* ]
+jobs:
+  build-config:
+    name: Prepare build configurations
+    runs-on: self-hosted
+    outputs:
+      buildconfigurations: ${{ env.tnpALBuildConfigurations }}
+      testbuildconfigurations: ${{ env.tnpALTestBuildConfigurations }}
+      previewtestbuildconfigurations: ${{ env.tnpALPreviewTestBuildConfigurations }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.TNPREPOSITORYINITKEY }}
+
+      - name: read settings
+        id: read-settings
+        uses: TheNAVPeople/devops_al_Actions/read-settings@v2.0
+        with:
+          path: "${{ github.workspace }}"
+
+  build:
+    name: Build apps
+    needs: build-config
+    strategy:
+      matrix:
+        include: ${{ fromJSON(needs.build-config.outputs.testbuildconfigurations) }}
+    runs-on: self-hosted
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: read settings
+        uses: TheNAVPeople/devops_al_Actions/read-settings@v2.0
+        with:
+          path: "${{ github.workspace }}"
+
+      - name: setup
+        uses: TheNAVPeople/devops_al_Actions/setup-al@v2.0
+        with:
+          psgalleryapikey: ${{ secrets.TNPPSREPOSITORYAPIKEY }}
+          projectpath: "${{ github.workspace }}"
+          compilerversion: "${{ env.tnpALCompilerVersion }}"
+
+      # Build extension using lowest version of dependencies
+      - name: Build for lowest dependencies versions
+        uses: TheNAVPeople/devops_al_Actions/build@v2.0
+        with:
+          path: "${{ github.workspace }}"
+          compilerpath: "${{ env.al_compiler_path }}"
+          usenavcompiler: "${{ env.al_nav_compiler }}"
+          configuration: "${{ matrix.configuration }}"
+          analyzers: "${{ matrix.analyzers }}"
+          warnaserror: "${{ env.tnpWarnAsError }}"
+          outpath: "${{ github.workspace }}\\.out"
+          compilerlog: "${{ github.workspace }}\\compilerlog-${{ matrix.title }}.log"
+          apikey: ${{ secrets.NUGETAPIKEY }}
+          commitversionchange: false
+          changeversion: false
+          bcartifactstype: "${{ matrix.artifactsType }}"
+          bccountry: "${{ matrix.country }}"
+          ruleset: "${{ env.tnpRuleset }}"
+          parallel: "${{ env.tnpParallelCompilation }}"
+
+      - name: Archive compiler output
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Compiler output log - ${{ matrix.title }}
+          path: "${{ github.workspace }}\\compilerlog-${{ matrix.title }}.log"
+  
+  build-check:
+    needs: build
+    name: PullRequest Build Checks
+    runs-on: self-hosted
+    if: ${{ success() || failure() }}
+    steps:
+      # Check previous job status
+      - name: Check build status
+        run: |
+          $buildstate = "${{ needs.build.result }}"
+          if ($buildstate -eq "failure") {
+            throw "Build process failed. Please check task results."
+          }
+
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: checkout
+        uses: actions/checkout@v4
+
+      # Merge pull request if it is possible
+      - name: Merge pull request
+        env:
+          GH_TOKEN: ${{ secrets.TNPREPOSITORYINITKEY }}
+        run: |
+          try {
+            $sourceBranch = "${{ github.head_ref }}"
+            $deleteBranch = $sourceBranch.startsWith("temppr/")
+            $pullRequestNumber = "${{ github.event.pull_request.number }}"
+            if ($deleteBranch) {
+              gh pr merge $pullRequestNumber --auto --merge --delete-branch
+            } else {
+              gh pr merge $pullRequestNumber --auto --merge
+            }
+          }
+          catch {
+          }

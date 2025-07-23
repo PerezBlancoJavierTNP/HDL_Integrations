@@ -1,0 +1,138 @@
+name: TNP Initialize Branch Protection
+on: 
+  workflow_dispatch:
+    inputs:
+      targetfeed:
+        description: 'Target NuGet Feed Url'
+        required: true
+      nugetapikey:
+        description: 'NuGet API Key'
+        required: false
+      countrycode:
+        description: 'BC Country Code (default: gb)'
+        required: false
+      warnaserror:
+        description: 'Warnings as Errors'
+        type: choice
+        options:
+          - true
+          - false
+        required: true
+
+jobs:
+  init:
+    name: Initialize AL project
+    runs-on: self-hosted
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: checkout
+        uses: actions/checkout@v4
+
+      # Update al project files
+      - name: initialize all app.json files in the repository
+        run: |
+          [string] $path = "."
+          [string] $patternStart = "###!"
+          [string] $patternEnd = "!###"
+          $patternValuesCollection = @{ }
+
+          $filesList = Get-ChildItem -Path $path -Include "app.json" -Recurse
+
+          foreach ($file in $filesList) {
+              [string] $content = Get-Content -Path $file.FullName -Raw
+              [string] $prevContent = $content
+
+              $startPos = $content.IndexOf($patternStart)
+
+              while ($startPos -ge 0) {
+                  $endPos = $content.IndexOf($patternEnd, $startPos + $patternStart.Length)
+              
+                  $fullPattern = $content.Substring($startPos, $endPos + $patternEnd.Length - $startPos)
+                  $pattern = $fullPattern.Substring($patternStart.Length, $fullPattern.Length - $patternStart.Length - $patternEnd.Length)
+
+                  $patternValue = ""
+                  if ($patternValuesCollection.ContainsKey($pattern)) {
+                      $patternValue = $patternValuesCollection[$pattern]
+                  } else {
+                      $patternValue = [System.Guid]::NewGuid().ToString("D")
+                      $patternValuesCollection.Add($pattern, $patternValue) | Out-Null
+                  }
+                  $content = $content.Replace($fullPattern, $patternValue)
+
+                  $startPos = $content.IndexOf($patternStart)
+              }
+
+              if ($prevContent -ne $content) {
+                  Set-Content -Path $file.FullName -Value $content -Encoding utf8
+              }
+          }
+
+      - name: initialize settings
+        run: |
+          $targetFeedUri = "${{ github.event.inputs.targetfeed }}"
+          $bcCountryCode =  "${{ github.event.inputs.countrycode }}"
+          $warnAsError =  "${{ github.event.inputs.warnaserror }}"
+          if ([System.String]::IsNullOrWhiteSpace($bcCountryCode)) {
+            $bcCountryCode = "gb"
+          }
+          $path = "${{ github.workspace }}"
+          $settingsPath = Join-Path -Path $path -ChildPath ".github\TNP-Settings.json"
+          $data = Get-Content -Raw $settingsPath | ConvertFrom-Json
+          $data.tnpWarnAsError = $warnAsError
+          $data.tnpALBuildConfigurations[0].targetFeedUri = $targetFeedUri
+          $data.tnpALBuildConfigurations[0].country = $bcCountryCode
+          $data.tnpALTestBuildConfigurations[0].country = $bcCountryCode
+          $data.tnpALPreviewTestBuildConfigurations[0].country = $bcCountryCode
+          $data | ConvertTo-Json | Out-File $settingsPath -Encoding utf8 -Force
+
+      # Initialize branches
+      - name: commit changes and create branches
+        run: |
+          $commitMessage = "[skip ci] AL repository initialization"
+          git add --all
+          git commit -m $commitMessage -q
+          git push
+
+          $branchName = "develop"
+          git branch $branchName -q
+          git checkout $branchName -q
+          git push -u origin $branchName
+
+      # Initialize branch protection rules
+      - name: setup repository and branch protection rules
+        env:
+          GH_TOKEN: ${{ secrets.TNPREPOSITORYINITKEY }}
+          REPO_NUGETAPIKEY: ${{ github.event.inputs.nugetapikey }}
+        run: |
+          [string] $owner = "${{ github.repository_owner }}"
+          [string] $repository = "${{ github.repository }}"
+          $pos = $repository.IndexOf("/")
+          if ($pos -ge 0) {
+            $owner = $repository.Substring(0, $pos)
+            $repository = $repository.Substring($pos + 1)
+          }
+
+          Write-Host "Preparing secret values"
+          gh secret set NUGETAPIKEY --body $env:REPO_NUGETAPIKEY
+
+          Write-Host "Initializing branch protection rules for repository $repository owned by $owner"
+          $repositoryId = gh api graphql -F "owner=$Owner" -F "name=$Repository" -f "query=query(`$name: String!, `$owner: String!) {repository(owner: `$owner, name: `$name){id}}" -q .data.repository.id
+          
+          gh api graphql -f query='
+          mutation($repositoryId:ID!,$branch:String!,$rules:String!,$appId:ID) {
+          createBranchProtectionRule(input: {
+            repositoryId: $repositoryId
+            pattern: $branch
+            requiresApprovingReviews: true
+            requiredApprovingReviewCount: 0
+            requiresStrictStatusChecks: false
+            requiresStatusChecks: true
+              requiredStatusChecks: [ 
+                  {
+                      appId: $appId
+                      context: $rules 
+                  }]
+          }) { clientMutationId }
+          }' -f repositoryId="$repositoryId" -f branch="[main,master,develop]*" -f rules="PullRequest Build Checks" -f appId="any"
+          
+          gh repo edit --enable-auto-merge

@@ -1,0 +1,39 @@
+﻿{
+    "tnpUpdateAppVersion": "true",
+    "tnpWarnAsError": "true",
+    "tnpPreviewWarnAsError":  "false",
+    "tnpALCompilerVersion": "",
+    "tnpRuleset": "",
+    "tnpNuGetSettingsPath": "",
+    "tnpALSyncConfigurationVersions": "",
+    "tnpParallelCompilation": "",
+    "tnpALBuildConfigurations": [
+        {
+            "title": "Default",
+            "targetFeedUri": "",
+            "configuration": "",
+            "analyzers": "`$CodeCop,`$UICop,`$PerTenantExtensionCop",
+            "artifactsType": "onprem",
+            "country": "gb"
+        }
+    ],
+    "tnpALTestBuildConfigurations": [
+        {
+            "title": "Default",
+            "configuration": "",
+            "analyzers": "`$CodeCop,`$UICop,`$PerTenantExtensionCop",
+            "artifactsType": "onprem",
+            "country": "gb"
+        }
+    ],
+    "tnpALPreviewTestBuildConfigurations": [
+        {
+            "title": "Default",
+            "configuration": "",
+            "analyzers": "`$CodeCop,`$UICop,`$PerTenantExtensionCop",
+            "artifactsType": "onprem",
+            "country": "gb"
+        }
+    ]
+
+}

@@ -1,0 +1,142 @@
+name: TNP Build and Publish NuGet
+on:
+  push:
+    branches: [ develop, main, master, release/* ]
+  workflow_dispatch:     
+
+jobs:
+  build-config:
+    name: Setup and single version build
+    runs-on: self-hosted
+    if: ${{ !contains(github.event.head_commit.message, '[skip build]') }}
+    outputs:
+      buildconfigurations: ${{ env.tnpALBuildConfigurations }}
+      testbuildconfigurations: ${{ env.tnpALTestBuildConfigurations }}
+      previewtestbuildconfigurations: ${{ env.tnpALPreviewTestBuildConfigurations }}
+      updatecommit: ${{ env.alVersionUpdateCommitHash }}
+      cancompile: ${{ env.al_can_compile }}
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.TNPREPOSITORYINITKEY }}
+
+      # Check if project can be compiled
+      - name: cancompile
+        uses: TheNAVPeople/devops_al_Actions/can-compile@v2.0
+        with:
+          path: "${{ github.workspace }}"
+
+      - name: read settings
+        id: read-settings
+        uses: TheNAVPeople/devops_al_Actions/read-settings@v2.0
+        with:
+          path: "${{ github.workspace }}"
+
+      - name: setup
+        uses: TheNAVPeople/devops_al_Actions/setup-al@v2.0
+        if: (env.al_can_compile == 'true')
+        with:
+          psgalleryapikey: ${{ secrets.TNPPSREPOSITORYAPIKEY }}
+          projectpath: "${{ github.workspace }}"
+          compilerversion: "${{ env.tnpALCompilerVersion }}"
+   
+      - name: update version
+        uses: TheNAVPeople/devops_al_Actions/update-version@v2.0
+        if: ((env.al_can_compile == 'true') && (env.tnpUpdateAppVersion == 'true'))
+        with:
+          path: "${{ github.workspace }}"
+          commitversionchange: true
+          versionchangecommitmessage: "[skip build] - Build version update"
+          versionbuild: "${{ github.run_number }}"
+          versionrevision: "${{ github.run_attempt }}"
+          versionbuildoffset: "1000"
+          versionrevisionoffset: "-1"
+          syncwithconfigurations: "${{ env.tnpALSyncConfigurationVersions }}"
+      
+      - name: get version update commit hash
+        run: |
+          $sha_new = (git rev-parse HEAD)
+          Write-Output "alVersionUpdateCommitHash=$sha_new" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+  build:
+    name: Multiple versions build
+    needs: build-config
+    if: ${{ (!contains(github.event.head_commit.message, '[skip build]')) && (needs.build-config.outputs.buildconfigurations != '') }}
+    strategy:
+      matrix:
+        include: ${{ fromJSON(needs.build-config.outputs.buildconfigurations) }}
+    runs-on: self-hosted
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.build-config.outputs.updatecommit }}
+          token: ${{ secrets.TNPREPOSITORYINITKEY }}
+
+      # Check if project can be compiled
+      - name: cancompile
+        uses: TheNAVPeople/devops_al_Actions/can-compile@v2.0
+        with:
+          path: "${{ github.workspace }}"
+
+      - name: read settings
+        uses: TheNAVPeople/devops_al_Actions/read-settings@v2.0
+        if: (env.al_can_compile == 'true')
+        with:
+          path: "${{ github.workspace }}"
+  
+      - name: setup
+        uses: TheNAVPeople/devops_al_Actions/setup-al@v2.0
+        if: (env.al_can_compile == 'true')
+        with:
+          psgalleryapikey: ${{ secrets.TNPPSREPOSITORYAPIKEY }}
+          projectpath: "${{ github.workspace }}"
+          compilerversion: "${{ env.tnpALCompilerVersion }}"
+
+      # Build extension using lowest version of dependencies
+      - name: Build for lowest dependencies versions
+        uses: TheNAVPeople/devops_al_Actions/build@v2.0
+        if: (env.al_can_compile == 'true')
+        with:
+          path: "${{ github.workspace }}"
+          compilerpath: "${{ env.al_compiler_path }}"
+          usenavcompiler: "${{ env.al_nav_compiler }}"
+          configuration: "${{ matrix.configuration }}"
+          analyzers: "${{ matrix.analyzers }}"
+          warnaserror: "${{ env.tnpWarnAsError }}"
+          outpath: "${{ github.workspace }}\\.out"
+          compilerlog: "${{ github.workspace }}\\compilerlog-${{ matrix.title }}.log"
+          apikey: ${{ secrets.NUGETAPIKEY }}
+          commitversionchange: false
+          changeversion: "${{ env.tnpUpdateAppVersion }}"
+          versionbuild: "${{ github.run_number }}"
+          versionrevision: "${{ github.run_attempt }}"
+          versionbuildoffset: "1000"
+          versionrevisionoffset: "-1"
+          bcartifactstype: "${{ matrix.artifactsType }}"
+          bccountry: "${{ matrix.country }}"
+          ruleset: "${{ env.tnpRuleset }}"
+          parallel: "${{ env.tnpParallelCompilation }}"
+
+      # Create NuGet package and push to the server
+      - name: push
+        uses: TheNAVPeople/devops_al_Actions/push-apps@v2.0
+        if: (env.al_can_compile == 'true')
+        with:
+          path: "${{ github.workspace }}\\.out"
+          repository: "${{ github.repositoryUrl }}"
+          branch: ${{ github.head_ref || github.ref_name }}
+          uri: "${{ matrix.targetFeedUri }}"
+          apikey: ${{ secrets.TNPNUGETSERVERUPLOADAPIKEY }}
+          settingspath: "${{ env.tnpNuGetSettingsPath }}"
+
+      - name: Archive compiler output
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Compiler output log - ${{ matrix.title }}
+          path: "${{ github.workspace }}\\compilerlog-${{ matrix.title }}.log"
