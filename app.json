@@ -1,23 +1,30 @@
 ﻿{
-    "id":  "###!GUID.1!###",
-    "name":  "Main Customer Functionality",
+    "id":  "8dcbf7f9-7a89-4a18-84f0-6f2a0a1b4d0f",
+    "name":  "Headlam_Integrations_TEMP",
     "publisher":  "Node4",
-    "version":  "1.0.0.0",
+    "version":  "1.0.0.1",
     "brief":  "",
-    "description":  "Main project functionality",
+    "description":  "Main Headlam project for Integrations",
     "privacyStatement":  "",
     "EULA":  "",
     "help":  "",
     "url":  "",
     "logo":  "",
-    "dependencies":  [],
+    "dependencies":  [
+    {
+      "id": "a0a907c2-b45f-4cf8-bacd-3ba363aafaec",
+      "name": "nHanced eCom (SaaS)",
+      "publisher": "The 365 People",
+      "version": "2600.41.4.0"
+    }
+    ],
     "screenshots":  [],
     "platform":  "1.0.0.0",
     "application":  "26.0.0.0",
     "idRanges":  [
         {
-            "from":  50000,
-            "to":  50099
+            "from":  51200,
+            "to":  51299
         }
     ],
     "resourceExposurePolicy":  {

@@ -2,7 +2,7 @@
     "CRS.FileNamePattern": "<ObjectNameShort>.<ObjectTypeShortPascalCase>.al",
     "CRS.FileNamePatternExtensions": "<ObjectNameShort>.<ObjectTypeShortPascalCase>.al",
     "CRS.FileNamePatternPageCustomizations": "<ObjectNameShort>.<ObjectTypeShortPascalCase>.al",
-    "CRS.OnSaveAlFileAction": "Reorganize",
+    "CRS.OnSaveAlFileAction": "Rename",
     "CRS.ObjectNameSuffix": "TNP",
     "CRS.RemoveSuffixFromFilename": true,
     "al.enableCodeAnalysis": true,
