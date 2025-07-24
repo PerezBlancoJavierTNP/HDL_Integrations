@@ -1,4 +1,4 @@
-codeunit 51203 "EDI Processor Codeunit EC TNP"
+codeunit 51200 "EDI Processor Codeunit EC TNP"
 {
     TableNo = "Inbound Sales Header nH";
 

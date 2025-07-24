@@ -1,4 +1,4 @@
-codeunit 51201 "Sales Inbound Mgt.Ecom TNP"
+codeunit 51207 "Sales Inbound Mgt.Ecom TNP"
 {
     procedure TriggerPreprocessorCduBeforeSalesDocumentProcessing(var InboundSalesHeader: Record "Inbound Sales Header nH")
     var

@@ -1,4 +1,4 @@
-codeunit 51200 "Sales Inb.Evts.Subscr Ecom TNP"
+codeunit 51206 "Sales Inb.Evts.Subscr Ecom TNP"
 {
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inbound Sales Doc. Proces. nH", OnBeforeSalesDocumentProcessing, '', false, false)]
