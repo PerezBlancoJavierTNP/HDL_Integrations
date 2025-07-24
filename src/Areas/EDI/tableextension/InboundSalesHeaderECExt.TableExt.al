@@ -40,9 +40,9 @@ tableextension 51201 "Inbound Sales Header EC ExtTNP" extends "Inbound Sales Hea
             DataClassification = CustomerContent;
             Description = 'OP38050-217 Sales EDI : Sales Order';
         }
-        field(51206; "Trading Party Code TNP"; Code[20])
+        field(51206; "Sender Code TNP"; Code[20])
         {
-            Caption = 'Trading Party Code';
+            Caption = 'Sender Code';
             DataClassification = CustomerContent;
             Description = 'OP38050-217 Sales EDI : Sales Order';
         }

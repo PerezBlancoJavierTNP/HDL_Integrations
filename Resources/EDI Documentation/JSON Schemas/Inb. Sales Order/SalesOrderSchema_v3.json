@@ -6,6 +6,7 @@
   "required": [
     "integrationCode",
     "documentType",
+    "senderCode",
     "ediCreationDate",
     "ediCreationTime",
     "ediInboundTransactionRef",
@@ -24,10 +25,10 @@
       "description": "Document type. Default is Order.",
       "default": "Order"
     },
-    "tradingPartyCode": {
+    "senderCode": {
       "type": "string",
       "maxLength": 20,
-      "description": "Trading Party Code from the nHanced Integration Record. Will be auto-populated from Integration record."
+      "description": "Sender Code from the nHanced Integration Record. Will be auto-populated from Integration record."
     },
     "ediCreationDate": {
       "type": "string",

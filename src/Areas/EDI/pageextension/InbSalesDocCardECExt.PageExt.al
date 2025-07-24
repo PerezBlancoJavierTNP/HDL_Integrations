@@ -4,7 +4,7 @@ pageextension 51200 "Inb. SalesDoc.Card EC ExtTNP" extends "Inbound Sales Docume
     {
         addbefore(CustomerGroup)
         {
-            field("Trading Party Code TNP"; Rec."Trading Party Code TNP")
+            field("Sender Code TNP"; Rec."Sender Code TNP")
             {
                 ApplicationArea = All;
                 Description = 'OP38050-217 Sales EDI : Sales Order';
@@ -32,14 +32,12 @@ pageextension 51200 "Inb. SalesDoc.Card EC ExtTNP" extends "Inbound Sales Docume
             {
                 ApplicationArea = All;
                 Description = 'OP38050-217 Sales EDI : Sales Order';
-                Editable = false;
                 ToolTip = 'Specifies the date when the EDI document was created.';
             }
             field("EDI Creation Time TNP"; Rec."EDI Creation Time TNP")
             {
                 ApplicationArea = All;
                 Description = 'OP38050-217 Sales EDI : Sales Order';
-                Editable = false;
                 ToolTip = 'Specifies the time when the EDI document was created.';
             }
             field("SMS Phone No. TNP"; Rec."SMS Phone No. TNP")

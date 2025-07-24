@@ -1,4 +1,4 @@
-codeunit 51200 "EDI Processor Codeunit EC TNP"
+codeunit 51200 "EDI Check-Processor Cdu. ECTNP"
 {
     TableNo = "Inbound Sales Header nH";
 
@@ -7,7 +7,7 @@ codeunit 51200 "EDI Processor Codeunit EC TNP"
         Process(Rec);
     end;
 
-    procedure Process(InboundSalesHeader: Record "Inbound Sales Header nH")
+    local procedure Process(InboundSalesHeader: Record "Inbound Sales Header nH")
     var
         InboundSalesLine: Record "Inbound Sales Line nH";
         Integration: Record "Integration nH";
@@ -36,7 +36,7 @@ codeunit 51200 "EDI Processor Codeunit EC TNP"
             until InboundSalesLine.Next() = 0;
     end;
 
-    procedure SetRequiredFieldsBeforeProcessing(var InboundSalesLine: Record "Inbound Sales Line nH"; InboundCustNo: Code[20])
+    local procedure SetRequiredFieldsBeforeProcessing(var InboundSalesLine: Record "Inbound Sales Line nH"; InboundCustNo: Code[20])
     var
         ItemReference: Record "Item Reference";
     begin

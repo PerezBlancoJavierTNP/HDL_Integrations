@@ -28,7 +28,7 @@ page 51200 "API Inb. Sales Doc. EC TNP"
                 {
                     ApplicationArea = All;
                 }
-                field(tradingPartyCode; Rec."Trading Party Code TNP")
+                field(tradingPartyCode; Rec."Sender Code TNP")
                 {
                     ApplicationArea = All;
                 }
