@@ -25,13 +25,13 @@ codeunit 51206 "Sales Inb.Evts.Subscr Ecom TNP"
         SalesInboundEcomMgt.CheckHeader(pInboundSalesHeader, pValidationToolkit);
     end;
 
-    /*[EventSubscriber(ObjectType::Codeunit, Codeunit::"Inbound Sales Doc. Proces. nH", OnBeforeCheckLine, '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inbound Sales Doc. Proces. nH", OnBeforeCheckLine, '', false, false)]
     local procedure InboundSalesDocProcesnH_OnBeforeCheckLine(pInboundSalesHeader: Record "Inbound Sales Header nH"; var pInboundSalesLine: Record "Inbound Sales Line nH");
     var
-    SalesInboundEcomMgt: Codeunit "Sales Inbound Mgt.Ecom TNP";
+        SalesInboundEcomMgt: Codeunit "Sales Inbound Mgt.Ecom TNP";
     begin
-        SalesInboundEcomMgt.SetItemNoFromItemReferenceNo(pInboundSalesHeader, pInboundSalesLine);
-    end;*/
+        SalesInboundEcomMgt.CheckLines(pInboundSalesHeader, pInboundSalesLine);
+    end;
 
     #endregion OnCheck Staging
 

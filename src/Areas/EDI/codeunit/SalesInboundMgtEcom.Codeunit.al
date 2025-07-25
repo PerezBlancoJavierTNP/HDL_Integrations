@@ -20,6 +20,16 @@ codeunit 51207 "Sales Inbound Mgt.Ecom TNP"
             ValidationToolkit.AddError(GetErrorMessage());
     end;
 
+    procedure CheckLines(var InboundSalesHeader: Record "Inbound Sales Header nH"; InboundSalesLine: Record "Inbound Sales Line nH")
+    var
+        EntityAccessPermMgtEC: Codeunit "Entity AccessPerm.Mgt. ECTNP";
+        SalesLineRecordRef: RecordRef;
+    begin
+        SalesLineRecordRef.GetTable(InboundSalesLine);
+        EntityAccessPermMgtEC.CheckEntityAccessOnDocumentLine(SalesLineRecordRef, false, InboundSalesLine.FieldNo("No."));
+
+    end;
+
     procedure TriggerPreprocessorCduBeforeSalesDocumentProcessing(var InboundSalesHeader: Record "Inbound Sales Header nH")
     var
         IntegrationEC: Record "Integration nH";
@@ -46,7 +56,7 @@ codeunit 51207 "Sales Inbound Mgt.Ecom TNP"
 
     procedure DefaultValuesOnProcessHeader(var InboundSalesHeader: Record "Inbound Sales Header nH"; var SalesHeader: Record "Sales Header")
     begin
-        SalesHeader."SMS Phone No. TNP" := InboundSalesHeader."SMS Phone No. TNP";
+        SalesHeader.Validate("SMS Phone No. TNP", InboundSalesHeader."SMS Phone No. TNP");
         SalesHeader.Modify(false);
     end;
 
