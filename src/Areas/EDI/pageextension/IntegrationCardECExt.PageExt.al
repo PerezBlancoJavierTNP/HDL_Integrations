@@ -4,12 +4,12 @@ pageextension 51203 "Integration Card EC ExtTNP" extends "Integration Card nH"
     {
         addlast(InbSOrdersGroup)
         {
-            field("Trading Party Code TNP"; Rec."Trading Party Code TNP")
+            field("Sender Code TNP"; Rec."Sender Code TNP")
             {
                 ApplicationArea = All;
-                Caption = 'Trading Party Code';
+                Caption = 'Sender Code';
                 Description = 'OP38050-217 Sales EDI : Sales Order';
-                ToolTip = 'Specifies the trading party code for EDI integration.';
+                ToolTip = 'Specifies the sender code for EDI integration.';
             }
             field("Supplier EAN TNP"; Rec."Supplier EAN TNP")
             {

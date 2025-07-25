@@ -8,7 +8,7 @@ pageextension 51200 "Inb. SalesDoc.Card EC ExtTNP" extends "Inbound Sales Docume
             {
                 ApplicationArea = All;
                 Description = 'OP38050-217 Sales EDI : Sales Order';
-                ToolTip = 'Specifies the trading party code for the sales document.';
+                ToolTip = 'Specifies the Sender code for the sales document.';
             }
             field("Ship-To-Code TNP"; Rec."Ship-To-Code TNP")
             {

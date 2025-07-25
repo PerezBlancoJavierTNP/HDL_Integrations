@@ -4,12 +4,12 @@ tableextension 51200 "Integration EC ExtTNP" extends "Integration nH"
 
     fields
     {
-        field(51200; "Trading Party Code TNP"; Code[20])
+        field(51200; "Sender Code TNP"; Code[20])
         {
             Caption = 'Specify Sender Reference';
             DataClassification = CustomerContent;
             Description = 'OP38050-217 Sales EDI : Sales Order';
-            ToolTip = 'Specifies the trading party code for EDI integration.';
+            ToolTip = 'Specifies the sender code for EDI integration.';
         }
         field(51201; "Supplier EAN TNP"; Code[35])
         {
