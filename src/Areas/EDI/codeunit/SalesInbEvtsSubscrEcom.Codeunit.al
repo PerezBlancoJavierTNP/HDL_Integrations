@@ -1,9 +1,6 @@
 codeunit 51206 "Sales Inb.Evts.Subscr Ecom TNP"
 {
 
-
-
-
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inbound Sales Doc. Proces. nH", OnBeforeSalesDocumentProcessing, '', false, false)]
     local procedure InboundSalesDocProcesnH_OnBeforeSalesDocumentProcessing(var pInboundSalesHeader: Record "Inbound Sales Header nH"; var pDoNotProcess: Boolean; var SubscriberDidProcess: Boolean; var SuppressFinalMessage: Boolean)
     var

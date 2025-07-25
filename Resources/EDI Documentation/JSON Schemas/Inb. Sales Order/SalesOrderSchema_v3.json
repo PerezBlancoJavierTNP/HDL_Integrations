@@ -9,7 +9,7 @@
     "senderCode",
     "ediCreationDate",
     "ediCreationTime",
-    "ediInboundTransactionRef",
+    "externalDocumentNo",
     "inboundSalesDocumentLines"
   ],
   "properties": {

@@ -1,4 +1,4 @@
-codeunit 51200 "EDI Check-Processor Cdu. ECTNP"
+codeunit 51200 "EDI Preprocessor Handler ECTNP"
 {
     TableNo = "Inbound Sales Header nH";
 

@@ -12,17 +12,17 @@
     "logo":  "",
     "dependencies":  [
     {
-      "id": "a0a907c2-b45f-4cf8-bacd-3ba363aafaec",
-      "name": "nHanced eCom (SaaS)",
-      "publisher": "The 365 People",
-      "version": "2600.41.4.0"
-    },
-    {
        "id": "1269e842-53e1-4356-9149-4ecb1d3c927e",
        "name": "Headlam_General",
        "publisher": "The 365 People",
        "version": "1.0.1228.0"
     },
+  {
+      "id": "a0a907c2-b45f-4cf8-bacd-3ba363aafaec",
+      "name": "nHanced eCom (SaaS)",
+      "publisher": "The 365 People",
+      "version": "2600.41.4.0"
+    },    
     {
       "id": "19df7fc9-097e-4bcd-8dba-0bee0ec6b513",
       "name": "nHanced Base (SaaS)",
@@ -32,7 +32,7 @@
     ],
     "screenshots":  [],
     "platform":  "26.0.0.0",
-    "application":  "26.0.0.0",
+    "application":  "26.3.0.0",
     "idRanges":  [
         {
             "from":  51200,
